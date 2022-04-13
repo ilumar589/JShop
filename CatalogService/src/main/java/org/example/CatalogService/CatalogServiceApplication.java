@@ -7,9 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CatalogServiceApplication {
 
 	public static void main(String[] args) {
-		try(var context = SpringApplication.run(CatalogServiceApplication.class, args)) {
-			context.getApplicationStartup();
-		}
+		SpringApplication.run(CatalogServiceApplication.class, args);
 	}
 
 }
