@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  catalogdb:
+    container_name: catalogdb
+    image: mongo:5.0
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - /data/db:/data/db
+    #environment:
+    #  - MONGO_INITDB_ROOT_USERNAME=admin
+    #  - MONGO_INITDB_ROOT_PASSWORD=admin
