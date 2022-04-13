@@ -5,8 +5,9 @@ import error.ApiError;
 import error.ErrorMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.CatalogService.dto.ProductCreationRequest;
 import org.example.CatalogService.entity.Product;
-import org.example.CatalogService.repository.IProductRepository;
+import org.example.CatalogService.service.IProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -23,8 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(path ="/api/v1/catalog/")
 public final class CatalogController {
-
-    private final IProductRepository productRepository;
+    private final IProductService productService;
 
     @GetMapping(path = "{id}", produces = APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -37,7 +37,7 @@ public final class CatalogController {
                     .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_COUNTRY_PARAM)))));
         }
 
-        return productRepository
+        return productService
                 .findById(id)
                 .map(product -> ResponseEntity
                         .ok(new ApplicationResponse<>(Optional.of(product), Optional.empty())))
@@ -50,11 +50,32 @@ public final class CatalogController {
     @GetMapping(produces = APPLICATION_JSON_VALUE)
     @ResponseBody
     public Mono<ResponseEntity<ApplicationResponse<List<Product>>>> findAll() {
-        return productRepository
+        return productService
                 .findAll()
                 .collectList()
                 .map(products -> ResponseEntity
                         .ok(new ApplicationResponse<>(Optional.of(products), Optional.empty())))
+                .onErrorReturn(ResponseEntity
+                        .internalServerError()
+                        .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
+    }
+
+    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Mono<ResponseEntity<ApplicationResponse<Product>>> createProduct(@RequestBody ProductCreationRequest productCreationRequest) {
+        return productService
+                .createProduct(productCreationRequest)
+                .map(product -> ResponseEntity.ok(new ApplicationResponse<>(Optional.of(product), Optional.empty())))
+                .onErrorReturn(ResponseEntity
+                        .internalServerError()
+                        .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
+    }
+
+    @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Mono<ResponseEntity<ApplicationResponse<Product>>> updateProduct(@RequestBody Product productUpdateRequest) {
+        return productService.updateProduct(productUpdateRequest)
+                .map(product -> ResponseEntity.ok(new ApplicationResponse<>(Optional.of(product), Optional.empty())))
                 .onErrorReturn(ResponseEntity
                         .internalServerError()
                         .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
