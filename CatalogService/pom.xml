@@ -59,6 +59,17 @@
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.6.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.example</groupId>
+			<artifactId>CommonUtils</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

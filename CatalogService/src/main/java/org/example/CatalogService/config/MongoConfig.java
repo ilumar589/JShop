@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
 @Configuration
-@EnableReactiveMongoRepositories
+@EnableReactiveMongoRepositories(basePackages = {"org.example.CatalogService.repository"})
 public class MongoConfig extends AbstractReactiveMongoConfiguration {
 
     @Value("${spring.data.mongodb.uri}")
