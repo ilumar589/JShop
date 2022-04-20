@@ -1,7 +1,7 @@
 package org.example.CatalogService.controller;
 
 import error.ApiError;
-import error.DataNotFoundException;
+import error.ApiErrorException;
 import error.ErrorMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.example.CatalogService.dto.ProductCreationRequest;
@@ -41,7 +41,9 @@ public record CatalogController(IProductService productService) {
                         .body(productService
                                 .findAll()
                                 .doOnError(error -> log.error(error.getMessage()))
-                                .switchIfEmpty(Mono.error(new DataNotFoundException("The data you seek is not here."))), Product.class)); // need error handler for custom exceptions
+                                .switchIfEmpty(Mono
+                                        .error(new ApiErrorException(new ApiError(HttpStatus.NOT_FOUND.name(), ErrorMessage.DATA_NOT_FOUND)))),
+                                Product.class)); // need error handler for custom exceptions
     }
 
     private RouterFunction<ServerResponse> findById() {
@@ -61,7 +63,9 @@ public record CatalogController(IProductService productService) {
                             .body(productService
                                     .findById(id)
                                     .doOnError(error -> log.error(error.getMessage()))
-                                    .switchIfEmpty(Mono.error(new DataNotFoundException("The data you seek is not here."))), Product.class);
+                                            .switchIfEmpty(Mono
+                                                    .error(new ApiErrorException(new ApiError(HttpStatus.NOT_FOUND.name(), ErrorMessage.DATA_NOT_FOUND)))),
+                                    Product.class);
                 });
     }
 
