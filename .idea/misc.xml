@@ -6,6 +6,7 @@
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/CatalogService/pom.xml" />
+        <option value="$PROJECT_DIR$/ShoppingCart/pom.xml" />
       </list>
     </option>
   </component>

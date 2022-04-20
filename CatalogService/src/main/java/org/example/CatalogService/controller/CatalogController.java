@@ -1,83 +1,79 @@
 package org.example.CatalogService.controller;
 
-import dto.ApplicationResponse;
 import error.ApiError;
+import error.DataNotFoundException;
 import error.ErrorMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.CatalogService.dto.ProductCreationRequest;
 import org.example.CatalogService.entity.Product;
 import org.example.CatalogService.service.IProductService;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import static org.springframework.web.reactive.function.server.ServerResponse.badRequest;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-
-@RequiredArgsConstructor
 @Slf4j
-@RestController
-@RequestMapping(path ="/api/v1/catalog/")
-public final class CatalogController {
-    private final IProductService productService;
+public record CatalogController(IProductService productService) {
 
-    @GetMapping(path = "{id}", produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Mono<ResponseEntity<ApplicationResponse<Product>>> findById(@PathVariable("id") String id) {
+    private static final String root = "/api/v1/catalog/";
 
-        if (!StringUtils.hasLength(id)) {
-            log.error("Invalid input parameter for id {}", id);
-            return Mono.just(ResponseEntity
-                    .badRequest()
-                    .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_COUNTRY_PARAM)))));
-        }
-
-        return productService
-                .findById(id)
-                .map(product -> ResponseEntity
-                        .ok(new ApplicationResponse<>(Optional.of(product), Optional.empty())))
-                .onErrorReturn(ResponseEntity
-                        .internalServerError()
-                        .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
+    @Bean
+    RouterFunction<ServerResponse> composeCatalogRoutes() {
+        return findAll()
+                .and(findById())
+                .and(createProduct())
+                .and(updateProduct());
     }
 
 
-    @GetMapping(produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Mono<ResponseEntity<ApplicationResponse<List<Product>>>> findAll() {
-        return productService
-                .findAll()
-                .collectList()
-                .map(products -> ResponseEntity
-                        .ok(new ApplicationResponse<>(Optional.of(products), Optional.empty())))
-                .onErrorReturn(ResponseEntity
-                        .internalServerError()
-                        .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
+    private RouterFunction<ServerResponse> findAll() {
+        return route(GET(root),
+                request -> ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(productService
+                                .findAll()
+                                .doOnError(error -> log.error(error.getMessage()))
+                                .switchIfEmpty(Mono.error(new DataNotFoundException("The data you seek is not here."))), Product.class)); // need error handler for custom exceptions
     }
 
-    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Mono<ResponseEntity<ApplicationResponse<Product>>> createProduct(@RequestBody ProductCreationRequest productCreationRequest) {
-        return productService
-                .createProduct(productCreationRequest)
-                .map(product -> ResponseEntity.ok(new ApplicationResponse<>(Optional.of(product), Optional.empty())))
-                .onErrorReturn(ResponseEntity
-                        .internalServerError()
-                        .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
+    private RouterFunction<ServerResponse> findById() {
+        return route(GET(root.concat("{id}")),
+                request -> {
+                    final String id = request.pathVariable("id");
+
+                    if (!StringUtils.hasLength(id)) {
+                        log.error("Invalid input parameter for id {}", id);
+                        return badRequest()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_COUNTRY_PARAM));
+                    }
+
+                    return ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(productService
+                                    .findById(id)
+                                    .doOnError(error -> log.error(error.getMessage()))
+                                    .switchIfEmpty(Mono.error(new DataNotFoundException("The data you seek is not here."))), Product.class);
+                });
     }
 
-    @PutMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public Mono<ResponseEntity<ApplicationResponse<Product>>> updateProduct(@RequestBody Product productUpdateRequest) {
-        return productService.updateProduct(productUpdateRequest)
-                .map(product -> ResponseEntity.ok(new ApplicationResponse<>(Optional.of(product), Optional.empty())))
-                .onErrorReturn(ResponseEntity
-                        .internalServerError()
-                        .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.name(), ErrorMessage.INTERNAL_ERROR)))));
+    private RouterFunction<ServerResponse> createProduct() {
+        return route(POST(root), request -> request.bodyToMono(ProductCreationRequest.class)
+                .doOnNext(productService::createProduct)
+                .then(ok().build()));
+    }
+
+    private RouterFunction<ServerResponse> updateProduct() {
+        return route(PUT(root), request -> request.bodyToMono(Product.class)
+                .doOnNext(productService::updateProduct)
+                .then(ok().build()));
     }
 }

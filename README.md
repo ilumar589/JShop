@@ -20,3 +20,6 @@ mvn deploy:deploy-file -DgroupId=[GROUP] -DartifactId=[ARTIFACT] -Dversion=[VERS
 
 Swagger:
 http://localhost:8080/swagger-ui.html just an example
+
+Actuator endpoints example:
+http://localhost:8080/actuator/health

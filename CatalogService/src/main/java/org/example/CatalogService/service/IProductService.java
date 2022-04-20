@@ -8,7 +8,6 @@ import reactor.core.publisher.Mono;
 public interface IProductService {
 
     Mono<Product> findById(String id);
-
     Flux<Product> findAll();
     Mono<Product> createProduct(ProductCreationRequest productCreationRequest);
     Mono<Product> updateProduct(Product productUpdateRequest);
