@@ -7,6 +7,10 @@ public final class ApiErrorException extends Throwable {
         this.error = error;
     }
 
+    public ApiError getError() {
+        return error;
+    }
+
     @Override
     public String getMessage() {
         return error.toString();
