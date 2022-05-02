@@ -41,9 +41,12 @@ public class CatalogHandler {
 
         if (!StringUtils.hasLength(id)) {
             log.error("Invalid input parameter for id {}", id);
+
+//            return Mono.error()
+
             return badRequest()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_COUNTRY_PARAM));
+                    .bodyValue(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_PRODUCT_ID));
         }
 
         return ok()
@@ -57,14 +60,37 @@ public class CatalogHandler {
     }
 
     public Mono<ServerResponse> createProduct(ServerRequest request) {
+        final String id = request.pathVariable("id");
+
+        if (!StringUtils.hasLength(id)) {
+            log.error("Invalid input parameter for id {}", id);
+            return badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_PRODUCT_ID));
+        }
+
+
         return request.bodyToMono(ProductCreationRequest.class)
                 .doOnNext(productService::createProduct)
                 .then(ok().build());
     }
 
     public Mono<ServerResponse> updateProduct(ServerRequest request) {
-        return request.bodyToMono(Product.class)
-                .doOnNext(productService::updateProduct)
-                .then(ok().build());
+        final String id = request.pathVariable("id");
+
+        if (!StringUtils.hasLength(id)) {
+            log.error("Invalid input parameter for id {}", id);
+            return badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue((new ApiErrorException(new ApiError(HttpStatus.NOT_FOUND.name(), ErrorMessage.DATA_NOT_FOUND))));
+        }
+
+       return ok()
+               .bodyValue(productService.findById(id)
+                       .switchIfEmpty(Mono.error(new ApiErrorException(new ApiError(HttpStatus.NOT_FOUND.name(), ErrorMessage.DATA_NOT_FOUND))))
+                       .flatMap(foundProduct -> request.bodyToMono(Product.class)
+                               .doOnNext(productService::updateProduct)
+                               .then(ok().build())));
+
     }
 }

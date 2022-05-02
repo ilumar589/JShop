@@ -1,7 +1,7 @@
 package error;
 
 public enum ErrorMessage {
-    INVALID_COUNTRY_PARAM("Invalid country parameter"),
+    INVALID_PRODUCT_ID("Invalid product id"),
     INTERNAL_ERROR("Internal error"),
 
     DATA_NOT_FOUND("Data not found");

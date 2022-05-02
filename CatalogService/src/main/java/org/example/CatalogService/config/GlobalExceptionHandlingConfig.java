@@ -31,7 +31,8 @@ public class GlobalExceptionHandlingConfig {
                 });
     }
 
-//    @Bean /TODO this doesn't work for error handling with functional endpoints
+//    @Bean /TODO this doesn't work for error handling with functional endpoints, well it works but we don't throw exceptions all the time. Some times we return a
+    //TODO body with an exception object like
     public WebExceptionHandler exceptionHandler() {
         return (ServerWebExchange exchange, Throwable ex) -> {
           if (ex instanceof ApiErrorException) {

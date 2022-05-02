@@ -35,7 +35,7 @@ public final class CatalogControllerDeprecated {
             log.error("Invalid input parameter for id {}", id);
             return Mono.just(ResponseEntity
                     .badRequest()
-                    .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_COUNTRY_PARAM)))));
+                    .body(new ApplicationResponse<>(Optional.empty(), Optional.of(new ApiError(HttpStatus.BAD_REQUEST.name(), ErrorMessage.INVALID_PRODUCT_ID)))));
         }
 
         return productService
