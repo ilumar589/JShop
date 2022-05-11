@@ -1,6 +1,6 @@
 package error;
 
-public final class ApiErrorException extends Throwable {
+public final class ApiErrorException extends RuntimeException {
     private final ApiError error;
 
     public ApiErrorException(ApiError error) {
@@ -13,11 +13,6 @@ public final class ApiErrorException extends Throwable {
 
     @Override
     public String getMessage() {
-        return error.toString();
-    }
-
-    @Override
-    public String getLocalizedMessage() {
-        return error.toString();
+        return getError().toString();
     }
 }

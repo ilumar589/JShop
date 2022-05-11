@@ -1,7 +1,6 @@
 package error;
 
-public record ApiError(int code, String status, ErrorMessage msg) {
-    public ApiError(String status, ErrorMessage msg) {
-        this(0, status, msg);
-    }
+import org.eclipse.collections.api.list.ImmutableList;
+
+public record ApiError(int code, String status, ImmutableList<ApErrorDetail> details) {
 }

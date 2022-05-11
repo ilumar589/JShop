@@ -1,10 +1,11 @@
 package org.example.CatalogService.dto;
 
+import org.eclipse.collections.api.set.MutableSet;
+
 import java.math.BigDecimal;
-import java.util.Set;
 
 public record ProductCreationRequest(String name,
                                      String description,
-                                     Set<TagCreationRequest> tags,
+                                     MutableSet<TagCreationRequest> tags,
                                      BigDecimal price) {
 }
